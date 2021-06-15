@@ -1,8 +1,8 @@
 #include QMK_KEYBOARD_H
 #include "muse.h"
 
-#define RCTRLSH RCTL(KC_RSFT)
-#define LCTRLSH LCTL(KC_LSFT)
+#define LCTRLSH (QK_LCTL | KC_LSFT)
+#define RCTRLSH (QK_RCTL | KC_RSFT)
 
 enum preonic_layers {
     _QWERTY,
@@ -18,7 +18,6 @@ enum preonic_keycodes {
     NUMBERS,
     MOVE,
     ADJUST,
-    BACKLIT,
     QUADER,
     THREE_0,
     TWO_0
@@ -104,7 +103,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 [_MOVE] = LAYOUT_preonic_grid(
     _______, KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,
     _______, _______, _______, _______, _______, _______, KC_PGUP, KC_BSPC, KC_UP,   KC_DEL,  _______, KC_F12,
-    _______, _______, _______, _______, _______, _______, KC_PGDN, KC_LEFT, KC_DOWN, KC_RIGHT,KC_MENU, QUADER,
+    _______, _______, _______, _______, _______, _______, KC_PGDN, KC_LEFT, KC_DOWN, KC_RIGHT,KC_APP,  QUADER,
     _______, _______, _______, _______, _______, _______, KC_PSCR, KC_HOME, KC_INS,  KC_END,  _______, _______,
     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
 ),
@@ -126,14 +125,15 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
     _______, RESET,   DEBUG,   _______, _______, _______, _______, _______, _______, _______, _______, _______,
     _______, _______, MU_MOD,  AU_ON,   AU_OFF,  _______, _______, _______, _______, _______, _______, _______,
-    _______, MUV_DE,  MUV_IN,  MU_ON,   MU_OFF,  _______, _______, _______, _______, _______, _______, _______,
-    BACKLIT, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
+    _______, MUV_DE,  MUV_IN,  MU_ON,   MU_OFF,  _______, _______, _______, _______, _______, _______, KC_CAPS,
+    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
 )
-
-
 };
 
-bool quad_presser = false;
+static bool quad_presser = false;
+static uint16_t quad_presser_key = 0;
+static uint16_t quad_repeater_timer = 0;
+
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
@@ -142,7 +142,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 set_single_persistent_default_layer(_QWERTY);
             }
             return false;
-            break;
         case SYMBOL:
             if (record->event.pressed) {
                 layer_on(_SYMBOL);
@@ -150,7 +149,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 layer_off(_SYMBOL);
             }
             return false;
-            break;
         case NUMBERS:
             if (record->event.pressed) {
                 layer_on(_NUMBERS);
@@ -158,7 +156,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 layer_off(_NUMBERS);
             }
             return false;
-            break;
         case MOVE:
             if (record->event.pressed) {
                 layer_on(_MOVE);
@@ -166,7 +163,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 layer_off(_MOVE);
             }
             return false;
-            break;
         case ADJUST:
             if (record->event.pressed) {
                 layer_on(_ADJUST);
@@ -174,57 +170,45 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 layer_off(_ADJUST);
             }
             return false;
-            break;
-        case BACKLIT:
-            if (record->event.pressed) {
-                register_code(KC_RSFT);
-                #ifdef BACKLIGHT_ENABLE
-                    backlight_step();
-                #endif
-                #ifdef __AVR__
-                    writePinLow(E6);
-                #endif
-            } else {
-                unregister_code(KC_RSFT);
-                #ifdef __AVR__
-                    writePinHigh(E6);
-                #endif
-            }
-            return false;
-            break;
         case QUADER:
             if (record->event.pressed) {
                 quad_presser = true;
             } else {
                 quad_presser = false;
+                quad_presser_key = 0;
             }
             return false;
-            break;
         case THREE_0:
             if (record->event.pressed) {
                 SEND_STRING("000");
             }
             return false;
-            break;
         case TWO_0:
             if (record->event.pressed) {
                 SEND_STRING("00");
             }
             return false;
-            break;
-    }
-    if (quad_presser) {
-        if (record->event.pressed) {
-            tap_code_delay(keycode, 10);
-            tap_code_delay(keycode, 10);
-            tap_code_delay(keycode, 10);
-            tap_code_delay(keycode, 10);
-            return false;
-        }
     }
 
     return true;
 };
+
+void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
+    if (quad_presser) {
+        // If key is not a modifier (see keycode.h)
+        if (!IS_MOD(keycode) && keycode != RCTRLSH && keycode != LCTRLSH) {
+            if (record->event.pressed) {
+                tap_code_delay(keycode, 10);
+                tap_code_delay(keycode, 10);
+                tap_code_delay(keycode, 10);
+                quad_presser_key    = keycode;
+                quad_repeater_timer = timer_read();
+            } else {
+                quad_presser_key = 0;
+            }
+        }
+    }
+}
 
 bool muse_mode = false;
 uint8_t last_muse_note = 0;
@@ -232,8 +216,13 @@ uint16_t muse_counter = 0;
 uint8_t muse_offset = 70;
 uint16_t muse_tempo = 50;
 
-
 void matrix_scan_user(void) {
+    if (quad_presser_key) {
+        if (timer_elapsed(quad_repeater_timer) > 400) {
+            tap_code_delay(quad_presser_key, 10);
+        }
+    }
+
 #ifdef AUDIO_ENABLE
     if (muse_mode) {
         if (muse_counter == 0) {
@@ -252,6 +241,7 @@ void matrix_scan_user(void) {
         }
     }
 #endif
+
 }
 
 bool music_mask_user(uint16_t keycode) {
