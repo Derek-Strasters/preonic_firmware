@@ -1,11 +1,9 @@
 #include QMK_KEYBOARD_H
 #include "muse.h"
 
-#define LCTRLSH (QK_LCTL | KC_LSFT)
-#define RCTRLSH (QK_RCTL | KC_RSFT)
-
 enum preonic_layers {
     _QWERTY,
+    _GAME,
     _SYMBOL,
     _NUMBERS,
     _MOVE,
@@ -13,30 +11,23 @@ enum preonic_layers {
 };
 
 enum preonic_keycodes {
-    QWERTY = SAFE_RANGE,
-    SYMBOL,
-    NUMBERS,
-    MOVE,
-    ADJUST,
-    QUADER,
+    QUADER = SAFE_RANGE,
     THREE_0,
     TWO_0
 };
 
+#define LCTRLSH (QK_LCTL | KC_LSFT)
+#define RCTRLSH (QK_RCTL | KC_RSFT)
+#define QWERTY DF(_QWERTY)
+#define GAME DF(_GAME)
+#define SYMBOL MO(_SYMBOL)
+#define NUMBERS MO(_NUMBERS)
+#define MOVE MO(_MOVE)
+#define ADJUST MO(_ADJUST)
+
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-/* Qwerty
- * ,-----------------------------------------------------------------------------------.
- * | Esc  |   1  |   2  |   3  |   4  |   5  |   6  |   7  |   8  |   9  |   0  | Bksp |
- * |------+------+------+------+------+------+------+------+------+------+------+------|
- * | Tab  |   Q  |   W  |   E  |   R  |   T  |   Y  |   U  |   I  |   O  |   P  | Del  |
- * |------+------+------+------+------+-------------+------+------+------+------+------|
- * | Mouse|   A  |   S  |   D  |   F  |   G  |   H  |   J  |   K  |   L  |   ;  | Enter|
- * |------+------+------+------+------+------|------+------+------+------+------+------|
- * | Shift|   Z  |   X  |   C  |   V  |   B  |   N  |   M  |   ,  |   .  |   /  |Shift |
- * |------+------+------+------+------+------+------+------+------+------+------+------|
- * | Brite| Ctrl | GUI  | Alt  |Lower |Numpad|Space |Raise | Left | Down |  Up  |Right |
- * `-----------------------------------------------------------------------------------'
- */
+
 [_QWERTY] = LAYOUT_preonic_grid(
     KC_ESC,  KC_1,    KC_2,    KC_3,    KC_4,    KC_5,    KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_BSPC,
     KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_QUOT,
@@ -45,19 +36,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     LCTRLSH, KC_LCTL, KC_LGUI, KC_LALT, SYMBOL,  NUMBERS, KC_SPC,  MOVE,    KC_RALT, KC_RGUI, KC_RCTL, RCTRLSH
 ),
 
-/* Symbols
- * ,-----------------------------------------------------------------------------------.
- * |   ~  |   !  |   @  |   #  |   $  |   %  |   ^  |   &  |   *  |   (  |   )  | Bksp |
- * |------+------+------+------+------+-------------+------+------+------+------+------|
- * |   ~  |   !  |   @  |   #  |   $  |   %  |   ^  |   &  |   *  |   (  |   )  | Del  |
- * |------+------+------+------+------+-------------+------+------+------+------+------|
- * | Del  |  F1  |  F2  |  F3  |  F4  |  F5  |  F6  |   _  |   +  |   {  |   }  |  |   |
- * |------+------+------+------+------+------|------+------+------+------+------+------|
- * |      |  F7  |  F8  |  F9  |  F10 |  F11 |  F12 |ISO ~ |ISO | | Home | End  |      |
- * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      |      |      |      |             |      | Next | Vol- | Vol+ | Play |
- * `-----------------------------------------------------------------------------------'
- */
+[_GAME] = LAYOUT_preonic_grid(
+    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+    KC_LCTL, _______, _______, _______, KC_SPC,  KC_BTN3, _______, _______, _______, _______, _______, _______
+),
+
 [_SYMBOL] = LAYOUT_preonic_grid(
     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
     _______, KC_LABK, KC_RABK, KC_LCBR, KC_RCBR, KC_TILD, _______, KC_PLUS, KC_CIRC, KC_ASTR, KC_EXLM, _______,
@@ -66,19 +52,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
 ),
 
-/* Numbers
- * ,-----------------------------------------------------------------------------------.
- * |   ~  |   !  |   @  |   #  |   $  |   %  |   ^  |   &  |   *  |   (  |   )  | Bksp |
- * |------+------+------+------+------+-------------+------+------+------+------+------|
- * |   ~  |   !  |   @  |   #  |   $  |   %  |   ^  |   &  |   *  |   (  |   )  | Del  |
- * |------+------+------+------+------+-------------+------+------+------+------+------|
- * | Del  |  F1  |  F2  |  F3  |  F4  |  F5  |  F6  |   _  |   +  |   {  |   }  |  |   |
- * |------+------+------+------+------+------|------+------+------+------+------+------|
- * |      |  F7  |  F8  |  F9  |  F10 |  F11 |  F12 |ISO ~ |ISO | | Home | End  |      |
- * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      |      |      |      |             |      | Next | Vol- | Vol+ | Play |
- * `-----------------------------------------------------------------------------------'
- */
 [_NUMBERS] = LAYOUT_preonic_grid(
     _______, _______, _______, _______, _______, _______, _______, KC_NLCK, KC_PSLS, KC_PAST, _______, _______,
     _______, _______, _______, _______, _______, _______, _______, KC_7,    KC_8,    KC_9,    KC_PMNS, _______,
@@ -87,19 +60,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______, _______, _______, _______, _______, _______, KC_0,    _______, KC_COMM, KC_DOT,  KC_COLN, _______
 ),
 
-/* Raise
- * ,-----------------------------------------------------------------------------------.
- * |   `  |   1  |   2  |   3  |   4  |   5  |   6  |   7  |   8  |   9  |   0  | Bksp |
- * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |   `  |   1  |   2  |   3  |   4  |   5  |   6  |   7  |   8  |   9  |   0  | Del  |
- * |------+------+------+------+------+-------------+------+------+------+------+------|
- * | Del  |  F1  |  F2  |  F3  |  F4  |  F5  |  F6  |   -  |   =  |   [  |   ]  |  \   |
- * |------+------+------+------+------+------|------+------+------+------+------+------|
- * |      |  F7  |  F8  |  F9  |  F10 |  F11 |  F12 |ISO # |ISO / | Pg Up| Pg Dn|      |
- * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      |      |      |      |             |      | Next | Vol- | Vol+ | Play |
- * `-----------------------------------------------------------------------------------'
- */
 [_MOVE] = LAYOUT_preonic_grid(
     _______, KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,
     _______, _______, _______, _______, _______, _______, KC_PGUP, KC_BSPC, KC_UP,   KC_DEL,  _______, KC_F12,
@@ -108,25 +68,12 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
 ),
 
-/* Adjust (Lower + Raise)
- * ,-----------------------------------------------------------------------------------.
- * |  F1  |  F2  |  F3  |  F4  |  F5  |  F6  |  F7  |  F8  |  F9  |  F10 |  F11 |  F12 |
- * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      | Reset| Debug|      |      |      |      |TermOf|TermOn|      |      |  Del |
- * |------+------+------+------+------+-------------+------+------+------+------+------|
- * |      |      |Aud cy|Aud on|AudOff|      |      |Qwerty|Colemk|Dvorak|      |      |
- * |------+------+------+------+------+------|------+------+------+------+------+------|
- * |      |Voice-|Voice+|Mus on|MusOff|MidiOn|MidOff|      |      |      |      |      |
- * |------+------+------+------+------+------+------+------+------+------+------+------|
- * |      |      |      |      |      |             |      |      |      |      |      |
- * `-----------------------------------------------------------------------------------'
- */
 [_ADJUST] = LAYOUT_preonic_grid(
-    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
-    _______, RESET,   DEBUG,   _______, _______, _______, _______, _______, _______, _______, _______, _______,
-    _______, _______, MU_MOD,  AU_ON,   AU_OFF,  _______, _______, _______, _______, _______, _______, _______,
-    _______, MUV_DE,  MUV_IN,  MU_ON,   MU_OFF,  _______, _______, _______, _______, _______, _______, KC_CAPS,
-    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
+    QWERTY,  _______, _______, _______, _______, _______, _______, _______, _______, KC_BTN3, _______, _______,
+    GAME,    RESET,   DEBUG,   _______, _______, _______, KC_WH_U, KC_BTN1, KC_MS_U, KC_BTN2, KC_BTN5, _______,
+    _______, _______, MU_MOD,  AU_ON,   AU_OFF,  _______, KC_WH_D, KC_MS_L, KC_MS_D, KC_MS_R, KC_BTN4, _______,
+    _______, MUV_DE,  MUV_IN,  MU_ON,   MU_OFF,  _______, _______, KC_WH_L, _______, KC_WH_R, _______, KC_CAPS,
+    _______, _______, _______, _______, _______, KC_BTN3, _______, _______, _______, _______, _______, _______
 )
 };
 
@@ -134,47 +81,13 @@ static bool quad_presser = false;
 static uint16_t quad_presser_key = 0;
 static uint16_t quad_repeater_timer = 0;
 
-
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
-        case QWERTY:
-            if (record->event.pressed) {
-                set_single_persistent_default_layer(_QWERTY);
-            }
-            return false;
-        case SYMBOL:
-            if (record->event.pressed) {
-                layer_on(_SYMBOL);
-            } else {
-                layer_off(_SYMBOL);
-            }
-            return false;
-        case NUMBERS:
-            if (record->event.pressed) {
-                layer_on(_NUMBERS);
-            } else {
-                layer_off(_NUMBERS);
-            }
-            return false;
-        case MOVE:
-            if (record->event.pressed) {
-                layer_on(_MOVE);
-            } else {
-                layer_off(_MOVE);
-            }
-            return false;
-        case ADJUST:
-            if (record->event.pressed) {
-                layer_on(_ADJUST);
-            } else {
-                layer_off(_ADJUST);
-            }
-            return false;
         case QUADER:
             if (record->event.pressed) {
                 quad_presser = true;
             } else {
-                quad_presser = false;
+                quad_presser     = false;
                 quad_presser_key = 0;
             }
             return false;
@@ -195,7 +108,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
     if (quad_presser) {
-        // If key is not a modifier (see keycode.h)
+        // Check if key is not a modifier (see keycode.h)
         if (!IS_MOD(keycode) && keycode != RCTRLSH && keycode != LCTRLSH) {
             if (record->event.pressed) {
                 tap_code_delay(keycode, 10);
@@ -244,12 +157,12 @@ void matrix_scan_user(void) {
 
 }
 
-bool music_mask_user(uint16_t keycode) {
-    switch (keycode) {
-        case MOVE:
-        case SYMBOL:
-            return false;
-        default:
-            return true;
-    }
-}
+//bool music_mask_user(uint16_t keycode) {
+//    switch (keycode) {
+//        case MOVE:
+//        case SYMBOL:
+//            return false;
+//        default:
+//            return true;
+//    }
+//}
