@@ -11,15 +11,15 @@ enum preonic_layers {
 };
 
 enum preonic_keycodes {
-    QUADER = SAFE_RANGE,
+    QWERTY = SAFE_RANGE,
+    GAME,
+    QUADER,
     THREE_0,
     TWO_0
 };
 
 #define LCTRLSH (QK_LCTL | KC_LSFT)
 #define RCTRLSH (QK_RCTL | KC_RSFT)
-#define QWERTY DF(_QWERTY)
-#define GAME DF(_GAME)
 #define SYMBOL MO(_SYMBOL)
 #define NUMBERS MO(_NUMBERS)
 #define MOVE MO(_MOVE)
@@ -70,7 +70,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 [_ADJUST] = LAYOUT_preonic_grid(
     QWERTY,  _______, _______, _______, _______, _______, _______, _______, _______, KC_BTN3, _______, _______,
-    GAME,    RESET,   DEBUG,   _______, _______, _______, KC_WH_U, KC_BTN1, KC_MS_U, KC_BTN2, KC_BTN5, _______,
+    GAME,    RESET,   _______, _______, _______, _______, KC_WH_U, KC_BTN1, KC_MS_U, KC_BTN2, KC_BTN5, _______,
     _______, _______, MU_MOD,  AU_ON,   AU_OFF,  _______, KC_WH_D, KC_MS_L, KC_MS_D, KC_MS_R, KC_BTN4, _______,
     _______, MUV_DE,  MUV_IN,  MU_ON,   MU_OFF,  _______, _______, KC_WH_L, _______, KC_WH_R, _______, KC_CAPS,
     _______, _______, _______, _______, _______, KC_BTN3, _______, _______, _______, _______, _______, _______
@@ -83,6 +83,20 @@ static uint16_t quad_repeater_timer = 0;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
+        case QWERTY:
+            if (record->event.pressed) {
+                rgblight_setrgb(127, 0, 0);
+                set_single_persistent_default_layer(_QWERTY);
+            }
+            return false;
+            break;
+        case GAME:
+            if (record->event.pressed) {
+                rgblight_setrgb(255, 127, 0);
+                set_single_persistent_default_layer(_GAME);
+            }
+            return false;
+            break;
         case QUADER:
             if (record->event.pressed) {
                 quad_presser = true;
@@ -108,7 +122,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
     if (quad_presser) {
-        // Check if key is not a modifier (see keycode.h)
+        // Check that key is not a modifier (see keycode.h)
         if (!IS_MOD(keycode) && keycode != RCTRLSH && keycode != LCTRLSH) {
             if (record->event.pressed) {
                 tap_code_delay(keycode, 10);
