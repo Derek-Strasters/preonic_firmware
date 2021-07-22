@@ -25,7 +25,7 @@
    - MIDI notes can be sent when in Music mode is on
 */
 
-#define MIDI_BASIC
+//#define MIDI_BASIC
 
 /* enable advanced MIDI features:
    - MIDI notes can be added to the keymap
@@ -46,4 +46,9 @@
 #define NO_ACTION_MACRO
 #define NO_ACTION_FUNCTION
 
-#define RGB_LIGHT_DEFAULT_VAL 127
+#define RGBLIGHT_DISABLE_KEYCODES true
+#define RGBLIGHT_SLEEP true
+
+#define RGBLIGHT_DEFAULT_HUE 0
+#define RGBLIGHT_DEFAULT_SAT 0
+#define RGBLIGHT_DEFAULT_VAL 0

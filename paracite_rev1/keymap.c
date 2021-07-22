@@ -1,6 +1,5 @@
 #include QMK_KEYBOARD_H
 #include "muse.h"
-//#include "backlight_avr.h"
 
 
 enum preonic_layers {
@@ -35,7 +34,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_QUOT,
     ADJUST,  KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_ENT,
     KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_RSFT,
-    LCTRLSH, KC_LCTL, KC_LGUI, KC_LALT, SYMBOL,  NUMBERS, KC_SPC,  MOVE,    KC_RALT, KC_RGUI, KC_RCTL, RCTRLSH
+LCTRLSH, KC_LCTL, KC_LGUI, KC_LALT, SYMBOL,  NUMBERS, KC_SPC,  MOVE,    KC_RALT, KC_RGUI, KC_RCTL, RCTRLSH
 ),
 
 [_GAME] = LAYOUT_preonic_grid(
@@ -90,26 +89,27 @@ static uint16_t quad_presser_key = 0;
 static uint16_t quad_repeater_timer = 0;
 
 static uint16_t glow = 0;
-static bool glow_cooling = false;
-static uint16_t glow_dwell_timer = 0;
+static uint32_t glow_dwell_timer = 0;
 
-uint16_t heat_glow(uint16_t value) {
-    return ((uint32_t)value + 0x08FFUL > 0xFFFFUL) ? 0xFFFFU : value + 0x08FFU;
+static  inline void heat_glow(void) {
+    glow = ((uint32_t)glow + 0x08FFUL > 0xFFFFUL) ? 0xFFFFU : glow + 0x08FFU;
+    set_pwm(cie_lightness(glow));
 }
 
-uint16_t cool_glow(uint16_t value) {
-    if (value == 0x0000U) return 0x0000U;
-    uint16_t amount = ((value - 0x0001U) / 0x1FFFU) + 1;
-    amount = (amount > 0x000FU) ? amount : 0x000FU;
-    return (value > amount) ? value - amount : 0x0000U;
+static inline void cool_glow(void) {
+    if (glow == 0x0000U) {
+        return;
+    }
+    uint16_t amount = ((glow - 0x0001U) / 0x1000U) + 1;
+    amount = (amount > 0x0001U) ? amount : 0x0001U;
+    glow = (glow > amount) ? glow - amount : 0x0000U;
+    set_pwm(cie_lightness(glow));
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     if (record->event.pressed) {
-        glow = heat_glow(glow);
-        glow_dwell_timer = timer_read();
-        glow_cooling = false;
-        set_pwm(cie_lightness(glow));
+        heat_glow();
+        glow_dwell_timer = timer_read32();
     }
 
     switch (keycode) {
@@ -180,17 +180,21 @@ uint16_t muse_counter = 0;
 uint8_t muse_offset = 70;
 uint16_t muse_tempo = 50;
 
+float tone_test[][2] = {
+    {NOTE_D5, 8},
+    {NOTE_E6, 8},
+    {NOTE_D6, 8},
+    {NOTE_E5, 8}
+};
+
 void matrix_scan_user(void) {
-    if (timer_elapsed(glow_dwell_timer) > 700 || glow_cooling) {
-        if (!glow_cooling) {
-            glow_cooling = true;
-            glow_dwell_timer = 0;
+    if (glow_dwell_timer != 0) {
+        if (timer_elapsed32(glow_dwell_timer) > 700) {
+            cool_glow();
+            if (glow == 0) {
+                glow_dwell_timer = 0;
+            }
         }
-        else if (glow == 0) {
-            glow_cooling = false;
-        }
-        glow = cool_glow(glow);
-        set_pwm(cie_lightness(glow));
     }
 
     if (quad_presser_key) {

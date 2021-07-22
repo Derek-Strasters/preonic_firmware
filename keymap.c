@@ -1,6 +1,7 @@
 #include QMK_KEYBOARD_H
 #include "muse.h"
 
+
 enum preonic_layers {
     _QWERTY,
     _GAME,
@@ -81,18 +82,49 @@ static bool quad_presser = false;
 static uint16_t quad_presser_key = 0;
 static uint16_t quad_repeater_timer = 0;
 
+static uint16_t glow = 0;
+static uint32_t glow_dwell_timer = 0;
+
+static inline void set_rgb_vals(uint16_t value) {
+    uint16_t div_1 = value / 0x10U;
+    uint8_t div_2 = div_1 / 0x10U;
+    uint8_t mod = div_1 % 0x10U;
+    uint8_t corrector = div_2 % 0x03U;
+    rgblight_setrgb(div_2 + (((mod >= ((corrector > 0x00U) ? 0x05U : 0x06U)) && (div_2 < 0xFFU)) ? 1 : 0),
+                    div_2 + (((mod >= ((corrector == 0x02U) ? 0x0AU : 0x0BU)) && (div_2 < 0xFFU)) ? 1 : 0),
+                    div_2);
+}
+
+static  inline void heat_glow(void) {
+    glow = ((uint32_t)glow + 0x08FFUL > 0xFFFFUL) ? 0xFFFFU : glow + 0x08FFU;
+    set_rgb_vals(glow);
+}
+
+static inline void cool_glow(void) {
+    if (glow == 0x0000U) {
+        return;
+    }
+    uint16_t amount = ((glow - 0x0001U) / 0x0400U) + 1;
+    amount = (amount > 0x0001U) ? amount : 0x0001U;
+    glow = (glow > amount) ? glow - amount : 0x0000U;
+    set_rgb_vals(glow));
+}
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    if (record->event.pressed) {
+        heat_glow();
+        glow_dwell_timer = timer_read32();
+    }
+
     switch (keycode) {
         case QWERTY:
             if (record->event.pressed) {
-                rgblight_setrgb(127, 0, 0);
                 set_single_persistent_default_layer(_QWERTY);
             }
             return false;
             break;
         case GAME:
             if (record->event.pressed) {
-                rgblight_setrgb(255, 127, 0);
                 set_single_persistent_default_layer(_GAME);
             }
             return false;
@@ -140,6 +172,7 @@ void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
                 quad_repeater_timer = timer_read();
             } else {
                 quad_presser_key = 0;
+                quad_repeater_timer = 0;
             }
         }
     }
@@ -152,6 +185,15 @@ uint8_t muse_offset = 70;
 uint16_t muse_tempo = 50;
 
 void matrix_scan_user(void) {
+    if (glow_dwell_timer != 0) {
+        if (timer_elapsed32(glow_dwell_timer) > 700) {
+            cool_glow();
+            if (glow == 0) {
+                glow_dwell_timer = 0;
+            }
+        }
+    }
+
     if (quad_presser_key) {
         if (timer_elapsed(quad_repeater_timer) > 400) {
             tap_code_delay(quad_presser_key, 10);
@@ -178,13 +220,3 @@ void matrix_scan_user(void) {
 #endif
 
 }
-
-//bool music_mask_user(uint16_t keycode) {
-//    switch (keycode) {
-//        case MOVE:
-//        case SYMBOL:
-//            return false;
-//        default:
-//            return true;
-//    }
-//}
