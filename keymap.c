@@ -71,8 +71,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 [_ADJUST] = LAYOUT_preonic_grid(
     QWERTY,  _______, _______, _______, _______, _______, _______, _______, _______, KC_BTN3, _______, _______,
-    GAME,    RESET,   _______, _______, _______, _______, KC_WH_U, KC_BTN1, KC_MS_U, KC_BTN2, KC_BTN5, _______,
-    _______, _______, MU_MOD,  AU_ON,   AU_OFF,  _______, KC_WH_D, KC_MS_L, KC_MS_D, KC_MS_R, KC_BTN4, _______,
+    GAME,    RESET,   _______, _______, _______, KC_VOLU, KC_WH_U, KC_BTN1, KC_MS_U, KC_BTN2, KC_BTN5, _______,
+    _______, _______, MU_MOD,  AU_ON,   AU_OFF,  KC_VOLD, KC_WH_D, KC_MS_L, KC_MS_D, KC_MS_R, KC_BTN4, _______,
     _______, MUV_DE,  MUV_IN,  MU_ON,   MU_OFF,  _______, _______, KC_WH_L, _______, KC_WH_R, _______, KC_CAPS,
     _______, _______, _______, _______, _______, KC_BTN3, _______, _______, _______, _______, _______, _______
 )
@@ -85,30 +85,71 @@ static uint16_t quad_repeater_timer = 0;
 static uint16_t glow = 0;
 static uint32_t glow_dwell_timer = 0;
 
+#ifdef REV3_CONFIG_H
+
+static inline uint16_t cie_lightness(uint16_t v) {
+    if (v <= 5243)     // if below 8% of max
+        return v / 9;  // same as dividing by 900%
+    else {
+        uint32_t y = (((uint32_t)v + 10486) << 8) / (10486 + 0xFFFFUL);  // add 16% of max and compare
+        // to get a useful result with integer division, we shift left in the expression above
+        // and revert what we've done again after squaring.
+        y = y * y * y >> 8;
+        if (y > 0xFFFFUL)  // prevent overflow
+            return 0xFFFFU;
+        else
+            return (uint16_t)y;
+    }
+}
+
 static inline void set_rgb_vals(uint16_t value) {
-    uint16_t div_1 = value / 0x10U;
-    uint8_t div_2 = div_1 / 0x10U;
-    uint8_t mod = div_1 % 0x10U;
-    uint8_t corrector = div_2 % 0x03U;
-    rgblight_setrgb(div_2 + (((mod >= ((corrector > 0x00U) ? 0x05U : 0x06U)) && (div_2 < 0xFFU)) ? 1 : 0),
-                    div_2 + (((mod >= ((corrector == 0x02U) ? 0x0AU : 0x0BU)) && (div_2 < 0xFFU)) ? 1 : 0),
-                    div_2);
+    uint16_t div = value / 0x0101U;
+    uint8_t mod = value % 0x0101U;
+    rgblight_setrgb(div + ((rand() % 0x0101U < mod) ? 1 : 0),
+                    div + ((rand() % 0x0101U < mod) ? 1 : 0),
+                    div + ((rand() % 0x0101U < mod) ? 1 : 0));
 }
 
 static  inline void heat_glow(void) {
-    glow = ((uint32_t)glow + 0x08FFUL > 0xFFFFUL) ? 0xFFFFU : glow + 0x08FFU;
-    set_rgb_vals(glow);
+    glow = (0xFFFFU - glow < 0x0900U) ? 0xFFFFU : glow + 0x0900U;
+    set_rgb_vals(cie_lightness(glow));
 }
 
 static inline void cool_glow(void) {
     if (glow == 0x0000U) {
         return;
     }
-    uint16_t amount = ((glow - 0x0001U) / 0x0400U) + 1;
+    uint16_t amount = (glow / 0x0400U) + (glow % 0x0400U != 0);
+    glow = (glow > amount) ? glow - amount : 0x0000U;
+    set_rgb_vals(cie_lightness(glow));
+}
+
+#endif
+#ifdef REV1_CONFIG_H
+
+void keyboard_post_init_user(void) {
+    if (!is_backlight_enabled()) {
+        backlight_enable();
+    }
+}
+
+static  inline void heat_glow(void) {
+    glow = ((uint32_t)glow + 0x08FFUL > 0xFFFFUL) ? 0xFFFFU : glow + 0x08FFU;
+    set_pwm(cie_lightness(glow));
+}
+
+static inline void cool_glow(void) {
+    if (glow == 0x0000U) {
+        return;
+    }
+    uint16_t amount = ((glow - 0x0001U) / 0x1000U) + 1;
     amount = (amount > 0x0001U) ? amount : 0x0001U;
     glow = (glow > amount) ? glow - amount : 0x0000U;
-    set_rgb_vals(glow));
+    set_pwm(cie_lightness(glow));
 }
+
+#endif
+
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     if (record->event.pressed) {

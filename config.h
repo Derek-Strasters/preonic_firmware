@@ -15,40 +15,24 @@
                                 }
 #endif
 
-#define MUSIC_MASK (keycode != KC_NO)
-
-/*
- * MIDI options
- */
-
-/* enable basic MIDI features:
-   - MIDI notes can be sent when in Music mode is on
-*/
-
-//#define MIDI_BASIC
-
-/* enable advanced MIDI features:
-   - MIDI notes can be added to the keymap
-   - Octave shift and transpose
-   - Virtual sustain, portamento, and modulation wheel
-   - etc.
-*/
-//#define MIDI_ADVANCED
-
-/* override number of MIDI tone keycodes (each octave adds 12 keycodes and allocates 12 bytes) */
-//#define MIDI_TONE_KEYCODE_OCTAVES 2
-
-#define NO_DEBUG
-#define NO_PRINT
-
-//#define NO_ACTION_TAPPING
 #define NO_ACTION_ONESHOT
 #define NO_ACTION_MACRO
 #define NO_ACTION_FUNCTION
 
-#define RGBLIGHT_DISABLE_KEYCODES true
-#define RGBLIGHT_SLEEP true
+#ifdef REV3_CONFIG_H
+    #define MUSIC_MASK (keycode != KC_NO)
 
-#define RGBLIGHT_DEFAULT_HUE 0
-#define RGBLIGHT_DEFAULT_SAT 0
-#define RGBLIGHT_DEFAULT_VAL 0
+    #ifndef NO_DEBUG
+        #define NO_DEBUG
+    #endif
+    #ifndef NO_PRINT
+        #define NO_PRINT
+    #endif
+
+    #define RGBLIGHT_DISABLE_KEYCODES
+    #define RGBLIGHT_SLEEP
+
+    #define RGBLIGHT_DEFAULT_HUE 0
+    #define RGBLIGHT_DEFAULT_SAT 0
+    #define RGBLIGHT_DEFAULT_VAL 0
+#endif
