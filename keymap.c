@@ -12,9 +12,7 @@ enum preonic_layers {
 };
 
 enum preonic_keycodes {
-    QWERTY = SAFE_RANGE,
-    GAME,
-    QUADER,
+    QUADER = SAFE_RANGE,
     THREE_0,
     TWO_0,
     ADJUST
@@ -25,6 +23,9 @@ enum preonic_keycodes {
 #define SYMBOL MO(_SYMBOL)
 #define NUMBERS MO(_NUMBERS)
 #define MOVE MO(_MOVE)
+#define TGMOVE TG(_MOVE)
+#define QWERTY DF(_QWERTY)
+#define GAME DF(_GAME)
 
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -34,7 +35,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_QUOT,
     ADJUST,  KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_ENT,
     KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_RSFT,
-    LCTRLSH, KC_LCTL, KC_LGUI, KC_LALT, SYMBOL,  NUMBERS, KC_SPC,  MOVE,    KC_RALT, KC_RGUI, KC_RCTL, RCTRLSH
+    LCTRLSH, KC_LCTL, KC_LGUI, KC_LALT, SYMBOL,  NUMBERS, KC_SPC,  MOVE,    KC_RALT, KC_RCTL, DM_PLY1, DM_PLY2
 ),
 
 [_GAME] = LAYOUT_preonic_grid(
@@ -42,7 +43,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_QUOT,
     ADJUST,  KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_ENT,
     KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_RSFT,
-    KC_LCTL, KC_LCTL, KC_LGUI, KC_LALT, KC_SPC,  NUMBERS, KC_SPC,  MOVE,    KC_RALT, KC_RGUI, KC_RCTL, RCTRLSH
+    KC_LCTL, KC_LCTL, KC_LGUI, KC_LALT, KC_SPC,  NUMBERS, KC_SPC,  TGMOVE,  KC_RALT, KC_RCTL, DM_PLY1, DM_PLY2
 ),
 
 [_SYMBOL] = LAYOUT_preonic_grid(
@@ -50,7 +51,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______, KC_LABK, KC_RABK, KC_LCBR, KC_RCBR, KC_TILD, _______, KC_PLUS, KC_CIRC, KC_ASTR, KC_EXLM, _______,
     _______, KC_LBRC, KC_RBRC, KC_LPRN, KC_RPRN, KC_GRV,  KC_HASH, KC_MINS, KC_UNDS, KC_PERC, KC_EQL,  KC_AT,
     _______, KC_DQUO, KC_QUOT, KC_AMPR, KC_PIPE, _______, _______, KC_DLR,  KC_AT,   KC_BSLS, _______, _______,
-    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
+    _______, _______, _______, _______, _______, _______, _______, _______, _______, KC_RGUI, KC_RCTL, RCTRLSH
 ),
 
 [_NUMBERS] = LAYOUT_preonic_grid(
@@ -66,17 +67,25 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______, _______, _______, _______, _______, _______, KC_PGUP, KC_BSPC, KC_UP,   KC_DEL,  _______, KC_F12,
     _______, _______, _______, _______, _______, _______, KC_PGDN, KC_LEFT, KC_DOWN, KC_RIGHT,KC_APP,  QUADER,
     _______, _______, _______, _______, _______, _______, KC_PSCR, KC_HOME, KC_INS,  KC_END,  _______, _______,
-    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
+    _______, _______, _______, _______, _______, _______, _______, _______, _______, KC_RGUI, KC_RCTL, RCTRLSH
 ),
 
 [_ADJUST] = LAYOUT_preonic_grid(
-    QWERTY,  DM_REC1, DM_REC2, DM_PLY1, DM_PLY2, DM_RSTP, _______, _______, _______, KC_BTN3, _______, _______,
+    QWERTY,  _______, _______, _______, _______, _______, _______, _______, _______, KC_BTN3, _______, _______,
     GAME,    _______, _______, _______, _______, KC_VOLU, KC_WH_U, KC_BTN1, KC_MS_U, KC_BTN2, KC_BTN5, _______,
     _______, _______, MU_MOD,  AU_ON,   AU_OFF,  KC_VOLD, KC_WH_D, KC_MS_L, KC_MS_D, KC_MS_R, KC_BTN4, _______,
     _______, MUV_DE,  MUV_IN,  MU_ON,   MU_OFF,  _______, _______, KC_WH_L, _______, KC_WH_R, _______, KC_CAPS,
-    _______, _______, _______, _______, _______, KC_BTN3, _______, _______, _______, _______, _______, _______
+    _______, _______, _______, _______, _______, KC_BTN3, _______, _______, _______, DM_RSTP, DM_REC1, DM_REC2
 )
 };
+
+// Settings
+
+static uint8_t quader_wait_down = 10;  // Milliseconds key is held
+static uint8_t quader_wait_up = 10;  // Milliseconds between taps
+
+
+// Init'ings
 
 static bool quad_presser = false;
 static uint16_t quad_presser_key = 0;
@@ -154,8 +163,11 @@ static inline void cool_glow(void) {
 
 #endif
 
+float normal_song[16][2] = SONG(QWERTY_SOUND);
+float game_song[16][2] = SONG(COLEMAK_SOUND);
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+
     if (record->event.pressed) {
         heat_glow();
         glow_dwell_timer = timer_read32();
@@ -164,14 +176,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case QWERTY:
             if (record->event.pressed) {
-                default_layer_set(_QWERTY);
+                PLAY_SONG(normal_song);
             }
-            return false;
+            return true;
         case GAME:
             if (record->event.pressed) {
-                default_layer_set(_GAME);
+                PLAY_SONG(game_song);
             }
-            return false;
+            return true;
         case QUADER:
             if (record->event.pressed) {
                 quad_presser = true;
@@ -207,9 +219,14 @@ void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
         // Check that key is not a modifier (see keycode.h)
         if (!IS_MOD(keycode) && keycode != RCTRLSH && keycode != LCTRLSH) {
             if (record->event.pressed) {
-                tap_code_delay(keycode, 10);
-                tap_code_delay(keycode, 10);
-                tap_code_delay(keycode, 10);
+                wait_ms(quader_wait_down);
+                unregister_code(keycode);
+                wait_ms(quader_wait_up);
+                tap_code_delay(keycode, quader_wait_down);
+                wait_ms(quader_wait_up);
+                tap_code_delay(keycode, quader_wait_down);
+                wait_ms(quader_wait_up);
+                tap_code_delay(keycode, quader_wait_down);
                 quad_presser_key    = keycode;
                 quad_repeater_timer = timer_read();
             } else {
