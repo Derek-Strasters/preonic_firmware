@@ -255,7 +255,8 @@ void matrix_scan_user(void) {
 
     if (quad_presser_key) {
         if (timer_elapsed(quad_repeater_timer) > 400) {
-            tap_code_delay(quad_presser_key, 20);
+            wait_ms(quader_wait_up);
+            tap_code_delay(quad_presser_key, quader_wait_down);
         }
     }
 
