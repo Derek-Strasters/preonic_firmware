@@ -1,5 +1,3 @@
 SRC += muse.c
 
-DYNAMIC_MACRO_ENABLE = yes
-
 MOUSEKEY_ENABLE = yes

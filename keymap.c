@@ -70,8 +70,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 ),
 
 [_ADJUST] = LAYOUT_preonic_grid(
-    QWERTY,  _______, _______, _______, _______, _______, _______, _______, _______, KC_BTN3, _______, _______,
-    GAME,    RESET,   _______, _______, _______, KC_VOLU, KC_WH_U, KC_BTN1, KC_MS_U, KC_BTN2, KC_BTN5, _______,
+    QWERTY,  DM_REC1, DM_REC2, DM_PLY1, DM_PLY2, DM_RSTP, _______, _______, _______, KC_BTN3, _______, _______,
+    GAME,    _______, _______, _______, _______, KC_VOLU, KC_WH_U, KC_BTN1, KC_MS_U, KC_BTN2, KC_BTN5, _______,
     _______, _______, MU_MOD,  AU_ON,   AU_OFF,  KC_VOLD, KC_WH_D, KC_MS_L, KC_MS_D, KC_MS_R, KC_BTN4, _______,
     _______, MUV_DE,  MUV_IN,  MU_ON,   MU_OFF,  _______, _______, KC_WH_L, _______, KC_WH_R, _______, KC_CAPS,
     _______, _______, _______, _______, _______, KC_BTN3, _______, _______, _______, _______, _______, _______
@@ -86,6 +86,10 @@ static uint16_t glow = 0;
 static uint32_t glow_dwell_timer = 0;
 
 #ifdef REV3_CONFIG_H
+
+void keyboard_post_init_user(void) {
+    rgblight_setrgb(0, 0, 0);
+}
 
 static inline uint16_t cie_lightness(uint16_t v) {
     if (v <= 5243)     // if below 8% of max
@@ -160,16 +164,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case QWERTY:
             if (record->event.pressed) {
-                set_single_persistent_default_layer(_QWERTY);
+                default_layer_set(_QWERTY);
             }
             return false;
-            break;
         case GAME:
             if (record->event.pressed) {
-                set_single_persistent_default_layer(_GAME);
+                default_layer_set(_GAME);
             }
             return false;
-            break;
         case QUADER:
             if (record->event.pressed) {
                 quad_presser = true;
@@ -195,7 +197,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 layer_off(_ADJUST);
             }
             return false;
-            break;
     }
 
     return true;
@@ -237,7 +238,7 @@ void matrix_scan_user(void) {
 
     if (quad_presser_key) {
         if (timer_elapsed(quad_repeater_timer) > 400) {
-            tap_code_delay(quad_presser_key, 10);
+            tap_code_delay(quad_presser_key, 20);
         }
     }
 
