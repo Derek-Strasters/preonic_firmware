@@ -31,11 +31,12 @@
 //        #define NO_PRINT
 //    #endif
 //  END OF ENABLE ME
+    #define FORCE_NKRO
 
     #define DYNAMIC_MACRO_USER_CALL
     #define DYNAMIC_MACRO_SIZE 256
     #undef  DEBOUNCE
-    #define DEBOUNCE 5
+    #define DEBOUNCE 4
 
     #define RGBLIGHT_DISABLE_KEYCODES
     #define RGBLIGHT_SLEEP
