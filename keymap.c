@@ -95,12 +95,15 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 #define GLOW_DWELL_TIME 700               // Milliseconds before lights start to dim.
 #define RELEASE_PRESS_PREVENTION_TIME 20  // If a key is released and pressed again within this time, don't press.
 #define PRESS_RELEASE_PREVENTION_TIME 14  // If a key is pressed and released in this time, wait the rest of this time then release.
-#define EVENT_BUFFER_SIZE 6               // Number of possible goobers to ring buffer.
+#define BUFLEN 6                          // Number of possible goobers to ring buffer. 8 max.
+#define BLINK_TIME 60                     // Time the blinking backlights are on and off for.
 
 // Lighting
 
 static uint16_t glow             = 0;
 static uint32_t glow_dwell_timer = 0;
+static uint32_t blink_timer      = 0;
+static bool     blinking         = false;
 
 static inline uint16_t cie_lightness(uint16_t v) {
     if (v <= 5243)     // if below 8% of max
@@ -180,8 +183,8 @@ static bool     quad_presser        = false;
 static uint16_t quad_presser_key    = 0;
 static uint32_t quad_repeater_timer = 0;
 
-static last_event_t last_events[EVENT_BUFFER_SIZE];
-//static int last_event_index = 0;
+static last_event_t last_events[BUFLEN];
+static uint8_t last_event_i = 0;
 static goober_t goober = {.keycode = 0, .active = false, .time_unpressed = 0};
 
 void keyboard_post_init_user(void) {
@@ -196,7 +199,7 @@ void keyboard_post_init_user(void) {
     wait_ms(2500);
     uprintf("Greetings Paracite!\n");
 
-    for (int i = 0; i < EVENT_BUFFER_SIZE; i++) {
+    for (uint8_t i = 0; i < BUFLEN; i++) {
         last_events[i] = (last_event_t){.key = (keypos_t){.col = 0, .row = 0}, .time = 0};
     }
 }
@@ -215,7 +218,7 @@ static inline bool has_goobers(uint16_t keycode, keyevent_t event) {
     }
 
     // Check the event against the previous events to see if it is a bounce.
-    for (int i = 0; i < EVENT_BUFFER_SIZE; i++) {
+    for (uint8_t i = last_event_i; i != (last_event_i + 1) % BUFLEN ; i = (i + 1) % BUFLEN) {
         if (KEYEQ(event.key, last_events[i].key)) {
             uint16_t delta = TIMER_DIFF_16(event.time, last_events[i].time);
 
@@ -235,7 +238,7 @@ static inline bool has_goobers(uint16_t keycode, keyevent_t event) {
                     goober = (goober_t){.keycode = keycode, .active = true, .time_unpressed = event.time};
                     return true;
                 }
-                dprintf("Key %04X pressed for %u ms.\n", keycode, delta);
+//                dprintf("Key %04X pressed for %u ms.\n", keycode, delta);
                 return false;
             }
         }
@@ -254,7 +257,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         return false;
     }
 
-    // TODO: Move to function
     switch (keycode) {
         case QWERTY:
             if (record->event.pressed) {
@@ -288,8 +290,6 @@ void tap_code_delay16(uint16_t code, uint16_t delay) {
 }
 
 void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
-    static uint8_t buffer_index = 0;
-
     // Handle the back lighting.
     if (record->event.pressed) {
         heat_glow();
@@ -297,45 +297,42 @@ void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 
     // Record last key to the buffer to inspect for double taps on next press.
-    last_events[buffer_index] = (last_event_t){.key = record->event.key, .time = record->event.time};
-    buffer_index++;
-    if (buffer_index % EVENT_BUFFER_SIZE == 0) {
-        buffer_index = 0;
+    last_event_i++;
+    if (last_event_i == BUFLEN) {
+        last_event_i = 0;
     }
+    last_events[last_event_i] = (last_event_t){.key = record->event.key, .time = record->event.time};
 
     // Process the quad presser.
     if (quad_presser) {
         // Check that key is not a modifier (see keycode.h)
-        if (!IS_MOD(keycode)) {
-            // Don't execute for special functions.
-            if (keycode < QK_MODS_MAX) {
-                if (record->event.pressed) {
-                    wait_ms(QUADER_WAIT_DOWN);
-                    unregister_code16(keycode);
-                    wait_ms(QUADER_WAIT_UP);
-                    tap_code_delay16(keycode, QUADER_WAIT_DOWN);
-                    wait_ms(QUADER_WAIT_UP);
-                    tap_code_delay16(keycode, QUADER_WAIT_DOWN);
-                    wait_ms(QUADER_WAIT_UP);
-                    tap_code_delay16(keycode, QUADER_WAIT_DOWN);
-                    quad_presser_key    = keycode;
-                    quad_repeater_timer = timer_read32();
-                } else {
-                    // Let the matrix scan know that wer not repeating anymore.
-                    quad_presser_key = 0;
-                }
+        // Don't execute for special functions or mod keys, but do for left shift combos.
+        if ((keycode < QK_MODS && !IS_MOD(keycode)) || (keycode > QK_LCTL && keycode < QK_LALT)) {
+            if (record->event.pressed) {
+                wait_ms(QUADER_WAIT_DOWN);
+                unregister_code16(keycode);
+                wait_ms(QUADER_WAIT_UP);
+                tap_code_delay16(keycode, QUADER_WAIT_DOWN);
+                wait_ms(QUADER_WAIT_UP);
+                tap_code_delay16(keycode, QUADER_WAIT_DOWN);
+                wait_ms(QUADER_WAIT_UP);
+                tap_code_delay16(keycode, QUADER_WAIT_DOWN);
+                quad_presser_key    = keycode;
+                quad_repeater_timer = timer_read32();
+            } else {
+                // Let the matrix scan know that wer not repeating anymore.
+                quad_presser_key = 0;
             }
         }
     }
-    // NOTE: Nothing can go after this.
 }
 
 void dynamic_macro_record_start_user(void) {
-//    TODO: Start blinking
+    blinking  = true;
 }
 
 void dynamic_macro_record_end_user(int8_t direction) {
-//    TODO: Stop blinking
+    blinking  = false;
 }
 
 
@@ -348,11 +345,12 @@ uint8_t  muse_offset    = 70;
 uint16_t muse_tempo     = 50;
 
 void matrix_scan_user(void) {
+    static bool blink_state = false;
+
     // The key was released for longer than the limit.  Key is not a goober, so we register the un-press.
     if (goober.active) {
         uint16_t delta = timer_elapsed(goober.time_unpressed);
-        if (delta > PRESS_RELEASE_PREVENTION_TIME) {
-            // TODO: Call switch case function with unpressed record literal
+        if (delta > RELEASE_PRESS_PREVENTION_TIME) {
             uprintf("Key %04X was not a goober and was released %u ms later.\n", goober.keycode, delta);
             // If the offender is a layer mod, just turn that layer off (I guess?)
             if (goober.keycode >= QK_MOMENTARY && goober.keycode <= QK_TOGGLE_LAYER_MAX) {
@@ -363,7 +361,18 @@ void matrix_scan_user(void) {
         }
     }
 
-    if (glow_dwell_timer != 0) {
+    if (blinking) {
+        if (timer_elapsed32(blink_timer) > BLINK_TIME) {
+            if (blink_state) {
+                rgblight_setrgb(0, 0, 0);
+                blink_state = false;
+            } else {
+                rgblight_setrgb(255, 255, 255);
+                blink_state = true;
+            }
+            blink_timer = timer_read32();
+        }
+    } else if (glow_dwell_timer != 0) {
         if (timer_elapsed32(glow_dwell_timer) > GLOW_DWELL_TIME) {
             cool_glow();
             if (glow == 0) {
