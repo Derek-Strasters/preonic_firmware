@@ -35,7 +35,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_QUOT,
     ADJUST,  KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_ENT,
     KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_RSFT,
-    LCTRLSH, KC_LCTL, KC_LGUI, KC_LALT, SYMBOL,  NUMBERS, KC_SPC,  MOVE,    KC_RALT, KC_RCTL, KC_RCTL, RCTRLSH
+    LCTRLSH, KC_LCTL, KC_LGUI, KC_LALT, SYMBOL,  NUMBERS, KC_SPC,  MOVE,    KC_RALT, KC_RGUI, KC_RCTL, RCTRLSH
 ),
 
 [_GAME] = LAYOUT_preonic_grid(
@@ -43,7 +43,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_QUOT,
     ADJUST,  KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_ENT,
     KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_RSFT,
-    KC_LCTL, KC_LCTL, KC_LGUI, KC_LALT, KC_SPC,  NUMBERS, KC_SPC,  MOVE,    KC_RALT, KC_RCTL, KC_RCTL, RCTRLSH
+    KC_LCTL, KC_LCTL, KC_LGUI, KC_LALT, KC_SPC,  NUMBERS, KC_SPC,  MOVE,    KC_RALT, KC_RGUI, KC_RCTL, RCTRLSH
 ),
 
 [_SYMBOL] = LAYOUT_preonic_grid(
@@ -51,7 +51,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______, KC_LABK, KC_RABK, KC_LCBR, KC_RCBR, KC_TILD, _______, KC_PLUS, KC_ASTR, KC_CIRC, KC_EXLM, _______,
     _______, KC_LBRC, KC_RBRC, KC_LPRN, KC_RPRN, KC_GRV,  KC_HASH, KC_MINS, KC_UNDS, KC_PERC, KC_EQL,  _______,
     _______, KC_DQUO, KC_QUOT, KC_AMPR, KC_PIPE, _______, _______, KC_DLR,  KC_AT,   KC_BSLS, _______, _______,
-    _______, _______, _______, _______, _______, _______, _______, _______, _______, KC_RGUI, _______, _______
+    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
 ),
 
 [_NUMBERS] = LAYOUT_preonic_grid(
@@ -59,7 +59,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______, _______, _______, _______, _______, _______, KC_UNDS, KC_7,    KC_8,    KC_9,    KC_PMNS, _______,
     _______, _______, _______, _______, _______, _______, KC_COMM, KC_4,    KC_5,    KC_6,    KC_PPLS, _______,
     _______, _______, _______, _______, _______, _______, KC_SPC,  KC_1,    KC_2,    KC_3,    KC_DOT,  _______,
-    _______, _______, _______, _______, _______, _______, KC_0,    _______, KC_SPC,  _______, _______, _______
+    _______, _______, _______, _______, _______, _______, KC_0,    _______, KC_SPC,  _______, KC_BSLS, _______
 ),
 
 [_MOVE] = LAYOUT_preonic_grid(
@@ -67,7 +67,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______, _______, _______, _______, _______, _______, KC_PGUP, KC_BSPC, KC_UP,   KC_DEL,  _______, KC_F12,
     _______, _______, _______, _______, _______, _______, KC_PGDN, KC_LEFT, KC_DOWN, KC_RIGHT,KC_APP,  QUADER,
     _______, _______, _______, _______, _______, _______, KC_PSCR, KC_HOME, KC_INS,  KC_END,  _______, _______,
-    _______, _______, _______, _______, _______, _______, _______, _______, _______, KC_RGUI, _______, _______
+    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
 ),
 
 [_ADJUST] = LAYOUT_preonic_grid(
@@ -354,7 +354,7 @@ void matrix_scan_user(void) {
             uprintf("Key %04X was not a goober and was released %u ms later.\n", goober.keycode, delta);
             // If the offender is a layer mod, just turn that layer off (I guess?)
             if (goober.keycode >= QK_MOMENTARY && goober.keycode <= QK_TOGGLE_LAYER_MAX) {
-                layer_off(goober.keycode & 0xFF);
+                layer_off(goober.keycode & 0xFF);  // TODO: should probably toggle
             }
             unregister_code16(goober.keycode);
             goober.active = false;
