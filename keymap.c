@@ -224,11 +224,11 @@ static inline bool has_goobers(uint16_t keycode, keyevent_t event) {
 
             if (event.pressed) {
                 // Do not press key a second time if it was pressed again within time limit (results in two un-presses).
-                if (IS_LAYER_ON(_GAME)) {
-                }
                 if (delta < RELEASE_PRESS_PREVENTION_TIME) {
                     uprintf("\033[0;31mKey %04X pressed a second time only %u ms after release.\033[0m\n", keycode, delta);
-                    return true;
+                    if (!IS_LAYER_ON(_GAME)) {
+                        return true;
+                    }
                 }
             } else {
                 // Do not release a key if it was a bounce.  The name Goober is given to the offending key.
@@ -238,7 +238,7 @@ static inline bool has_goobers(uint16_t keycode, keyevent_t event) {
                     goober = (goober_t){.keycode = keycode, .active = true, .time_unpressed = event.time};
                     return true;
                 }
-//                dprintf("Key %04X pressed for %u ms.\n", keycode, delta);
+                dprintf("Key %04X pressed for %u ms.\n", keycode, delta);
                 return false;
             }
         }
