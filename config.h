@@ -28,7 +28,7 @@
     #define DYNAMIC_MACRO_USER_CALL
     #define DYNAMIC_MACRO_SIZE 256
     #undef  DEBOUNCE
-    #define DEBOUNCE 4
+    #define DEBOUNCE 0
 
     #define RGBLIGHT_DISABLE_KEYCODES
     #define RGBLIGHT_SLEEP
