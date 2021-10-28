@@ -241,11 +241,11 @@ static inline bool has_goobers(uint16_t keycode, keyevent_t event) {
     }
 
     // Check the event against the previous events to see if it is a bounce.
-    dprint("ring buffer lookup: ");
+//    dprint("ring buffer lookup: ");
     bool first_run = true;
     for (uint8_t i = last_event_i; i != last_event_i || first_run; i = (i == 0) ? BUFLEN - 1 : (i - 1)) {
         first_run = false;
-        dprintf("%u ", i);
+//        dprintf("%u ", i);
         if (KEYEQ(event.key, last_events[i].key)) {
             uint8_t mcol = mat_trans[event.key.row][event.key.col][0];
             uint8_t mrow = mat_trans[event.key.row][event.key.col][1];
@@ -254,7 +254,7 @@ static inline bool has_goobers(uint16_t keycode, keyevent_t event) {
             if (event.pressed) {
                 // Do not press key a second time if it was pressed again within time limit (results in two un-presses).
                 if (delta < RELEASE_PRESS_PREVENTION_TIME) {
-                    dprint("\n");
+//                    dprint("\n");
                     uprintf("\033[0;31m%02huX%02hu pressed again %u ms after release.\033[0m", mcol, mrow, delta);
                     if (!IS_LAYER_ON(_GAME)) {
                         uprint("  A second key register was blocked.\n");
@@ -266,19 +266,19 @@ static inline bool has_goobers(uint16_t keycode, keyevent_t event) {
                 // Do not release a key if it was a bounce.  The name Goober is given to the offending key.
                 // The matrix scanner will let go of the key if it is not really a goober.
                 if (delta < PRESS_RELEASE_PREVENTION_TIME) {
-                    dprint("\n");
+//                    dprint("\n");
                     uprintf("%02huX%02hu pressed for only %u ms.\n", mcol, mrow, delta);
                     goober = (goober_t){.keycode = keycode, .key = event.key, .active = true, .time_unpressed = event.time};
                     return true;
                 }
-                dprint("\n");
+//                dprint("\n");
                 dprintf("%02huX%02hu  pressed for %u ms.\n", mcol, mrow, delta);
                 return false;
             }
             break;
         }
     }
-    dprint("\n");
+//    dprint("\n");
     return false;
 }
 
